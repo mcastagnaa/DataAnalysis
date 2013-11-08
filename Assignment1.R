@@ -15,6 +15,8 @@ datadownloaded <- date()
 print(datadownloaded)
 rawdata <- read.csv(dataFile, as.is = TRUE)
 
+rm(dataFile, dataUrl)
+
 #head(rawdata)
 
 #names transformations
@@ -54,8 +56,44 @@ range(rawdata$Funded)
 # By 2006 the difference was only 10 points."
 # (http://en.wikipedia.org/wiki/Credit_score_in_the_United_States)
 
-# Data cleaning
-rawdata()
+############# DATA CLEANING
+# the -0.01 funded
+rawdata[rawdata$Funded == -0.01,]
+quantile(rawdata$RevolvingBalance/rawdata$MonthlyIncome, na.rm= TRUE)
+quantile(as.numeric(sub("%","",rawdata$DebtToIncome))/100)
+rawdata$Funded <- sub("-0.01", "0", rawdata$Funded)
+# homwownership = "NONE" to NA
+rawdata$HomeOwnership <- sub("NONE", NA, rawdata$HomeOwnership)
+
+
+############## DATA MUNGING
+# Variables transformations
+rawdata$DebtToIncome <- as.numeric(sub("%","",rawdata$DebtToIncome))/100
+rawdata$InterestRate <- as.numeric(sub("%","",rawdata$InterestRate))/100
+rawdata$Funded <- as.numeric(rawdata$Funded)
+rawdata$LoanPurpose <- sub("_", " ", rawdata$LoanPurpose)
 
 # Added variables
-FundRequest <-  rawdata$Funded/rawdata$Requested
+EmpLengthNum <- rawdata$EmploymentLength
+EmpLengthNum <- sub(" year", "", EmpLengthNum)
+EmpLengthNum <- sub("s", "", EmpLengthNum)
+EmpLengthNum <- sub("n/a", NA, EmpLengthNum)
+EmpLengthNum <- sub("< 1", "0", EmpLengthNum)
+rawdata$EmpLengthNum <- as.numeric(sub("10+", "11", EmpLengthNum, fixed = TRUE))
+
+rm(EmpLengthNum)
+
+rawdata$LoanLengthFac <- as.factor(rawdata$LoanLength)
+rawdata$HomeOwnershipFac <- as.factor(rawdata$HomeOwnership)
+rawdata$LoanPurposeFac <- as.factor(rawdata$LoanPurpose)
+rawdata$FICORangeFac <- as.factor(rawdata$FICORange)
+rawdata$StateFac <- as.factor(rawdata$State)
+rawdata$BalToIncome <- rawdata$RevolvingBalance/rawdata$MonthlyIncome
+rawdata$FundedPerc <- rawdata$Funded/rawdata$Requested
+
+rawdata$FICOmid <- sapply(strsplit(rawdata$FICORange, "-"), 
+                          function(x) (as.numeric(x[1])+as.numeric(x[2]))/2)
+
+summary(rawdata)
+sum(complete.cases(rawdata))
+sum(!complete.cases(rawdata))
