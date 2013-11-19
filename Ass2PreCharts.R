@@ -22,23 +22,25 @@
 #$ FundedPerc      : num  1 1 1 0.998 1 ...
 #$ FICOmid         : num
 
+png("IntRateFICObands.png")
 par(mfrow=c(2,1))
 rawdata.temp <- rawdata[rawdata$LoanLengthFac == "36 months", ]
 plot(rawdata.temp$FICORangeFac, rawdata.temp$InterestRate, 
      main = rawdata.temp$LoanLengthFac[1], 
-     xlab = "FICO", ylab = "Int.rate", yaxt = "n")
+     xlab = "FICO", ylab = "Int.rate", yaxt = "n", cex.axis=0.75)
 axis(2, at=pretty(rawdata.temp$InterestRate)
      , lab=paste0(pretty(rawdata.temp$InterestRate)*100, "%")
-     , las = TRUE)
+     , las = TRUE, cex.axis=0.75)
 rawdata.temp <- rawdata[rawdata$LoanLengthFac == "60 months", ]
 plot(rawdata.temp$FICORangeFac, rawdata.temp$InterestRate, 
      main = rawdata.temp$LoanLengthFac[1], 
-     xlab = "FICO", ylab = "Int.rate", yaxt = "n")
+     xlab = "FICO", ylab = "Int.rate", yaxt = "n", cex.axis=0.75)
 axis(2, at=pretty(rawdata.temp$InterestRate)
      , lab=paste0(pretty(rawdata.temp$InterestRate)*100, "%")
-     , las = TRUE)
-par(mfrow=c(1,1))
+     , las = TRUE, cex.axis=0.75)
+dev.off()
 rm(rawdata.temp)
+par(mfrow=c(1,1))
 
 
 par(mfrow=c(2,1))
@@ -99,7 +101,7 @@ axis(2, at=pretty(rawdata$InterestRate)
      , las = TRUE)
 par(mfrow=c(1,1))
 
-
+png("IntRvsDtI.png")
 rawdata.temp <- rawdata[rawdata$LoanLengthFac == "36 months", ]
 plot(rawdata.temp$DebtToIncome, rawdata.temp$InterestRate, 
      main = "Int.Rate vs. DebtToIncome (36m)", 
@@ -112,7 +114,36 @@ axis(2, at=pretty(rawdata.temp$InterestRate)
 axis(1, at=pretty(rawdata.temp$DebtToIncome)
      , lab=paste0(pretty(rawdata.temp$DebtToIncome)*100, "%")
      , las = TRUE)
+dev.off()
+
+plot(rawdata.temp$Funded, rawdata.temp$InterestRate, 
+     main = "Int.Rate vs. Funded (36m)", 
+     xlab = "Amount ($)", ylab = "Int.Rate"
+     , yaxt = "n"
+     , xaxt = "n")
+axis(2, at=pretty(rawdata.temp$InterestRate)
+     , lab=paste0(pretty(rawdata.temp$InterestRate)*100, "%")
+     , las = TRUE)
+axis(1, at=pretty(rawdata.temp$Funded)
+     , lab=paste0(pretty(rawdata.temp$Funded), "$")
+     , las = TRUE)
+
+plot(rawdata.temp$Requested, rawdata.temp$InterestRate, 
+     main = "Int.Rate vs. Requested (36m)", 
+     xlab = "Amount ($)", ylab = "Int.Rate"
+     , yaxt = "n"
+     , xaxt = "n")
+axis(2, at=pretty(rawdata.temp$InterestRate)
+     , lab=paste0(pretty(rawdata.temp$InterestRate)*100, "%")
+     , las = TRUE)
+axis(1, at=axTicks(1)
+     , lab=paste0(formatC(axTicks(1), format="d", big.mark=','), "$")
+     , las = TRUE)
+
+
 rm(rawdata.temp)
+
+
 
 plot(rawdata$HomeOwnershipFac, rawdata$InterestRate, 
      main = "Int.Rate vs. Home ownership", 

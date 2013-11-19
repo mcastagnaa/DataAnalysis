@@ -4,13 +4,14 @@
 # https://class.coursera.org/dataanalysis-002/human_grading/index
 
 # WORK 
-setwd("G:/GitHub/DataAnalysis")
-#HOME
 #setwd("G:/GitHub/DataAnalysis")
+#HOME
+setwd("./DataAnalysis")
+library("RCurl")
 
 dataUrl <- "https://spark-public.s3.amazonaws.com/dataanalysis/loansData.csv"
 dataFile <- "./downloads/loansData.csv"
-download.file(dataUrl, dataFile)
+download.file(dataUrl, dataFile, method="curl")
 datadownloaded <- date()
 print(datadownloaded)
 rawdata <- read.csv(dataFile, as.is = TRUE)
@@ -96,7 +97,7 @@ rawdata$FICOmid <- sapply(strsplit(rawdata$FICORange, "-"),
 
 purposeCount <-table(rawdata$LoanPurposeFac)
 rawdata <- merge(rawdata, as.data.frame(purposeCount), by.x = "LoanPurposeFac", by.y = "Var1")
-names(rawdata) <- sub("Freq", "LoanPurposeFreq", names(rawdata))
+names(rawdata) <- sub("Freq", "LoanPurposeFreq", names(rawdata), fixed=TRUE)
 rm(purposeCount)
 
 summary(rawdata)
