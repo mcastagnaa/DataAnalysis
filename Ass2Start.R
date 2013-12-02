@@ -74,11 +74,16 @@ statsStDev <- apply(statsByAct, 1, sd)
 statsStDevOr <- order(statsStDev, decreasing=TRUE)
 statsStDev <- statsStDev[statsStDevOr]
 
-names(head(statsStDev, 15))
+lm.formula <- as.formula(paste0("as.numeric(activity) ~ ", 
+        paste(names(head(statsStDev, 50)), collapse="+")))
+
 rm(statsStDev, statsStDevOr, statsByAct)
 
 #for(i=1:rows(names(head(statsStDev)))){paste}
 table(as.numeric(samTrain$activity))
+
+modelTest <- lm(lm.formula, data = samTrain)
+summary(modelTest)
 
 model <- lm(as.numeric(activity) ~ 
              fBodyAccJerk.entropy.X +
@@ -113,7 +118,7 @@ summary(model)
 #summary(step(lm(as.numeric(samTrain$activity) ~ .
 #             , data = samTrain[, 1:561])))
 
-predicted <- round(predict(model, samTrain))
+predicted <- round(predict(modelTest, samTrain))
 predicted <- replace(predicted, predicted==0,1)
 predicted <- replace(predicted, predicted>6,6)
 actual <- as.numeric(samTrain$activity)
@@ -145,7 +150,7 @@ abline(0,1, col="red")
 #dev.off()
 
 #using the test data
-predicted <- round(predict(model, samTest))
+predicted <- round(predict(modelTest, samTest))
 predicted <- replace(predicted, predicted==0,1)
 predicted <- replace(predicted, predicted>6,6)
 actual <- as.numeric(samTest$activity)
