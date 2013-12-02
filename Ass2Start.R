@@ -49,11 +49,128 @@ samTest <- na.omit(samsungData[samsungData$subject %in% subjTest, ])
 rm(list= ls(patter="other."))
 rm(list= ls(patter="fix."))
 rm(list= ls(patter="subj."))
-rm(trainindex, index, samsungData)
+rm(trainindex, index)
 
-glm1 <- glm(activity ~ ., data = samTrain, family = "gaussian")
-
+summary(as.numeric(samTrain$activity))
 summary(samTrain[,c(317, 331)])
 
 table(samTrain$activity, exclude= NULL )
 
+statsByAct <- t(apply(samTrain[ , 1:561],2, function(col) tapply(col, INDEX =samTrain$activity, FUN=mean)))
+
+statsStDev <- apply(statsByAct, 1, sd)
+statsMin <- apply(statsByAct, 1, min)
+statsMax <- apply(statsByAct, 1, max)
+statsRange <- statsMax-statsMin
+statsRangeOr <- order(statsRange, decreasing=TRUE)
+statsRange <- statsRange[statsRangeOr]
+rm(statsRangeOr, statsMin, statsMax)
+
+
+statsStDev <- apply(statsByAct[, c("walk", "walkdown", "walkup")], 1, sd)
+
+
+statsStDev <- apply(statsByAct, 1, sd)
+statsStDevOr <- order(statsStDev, decreasing=TRUE)
+statsStDev <- statsStDev[statsStDevOr]
+
+names(head(statsStDev, 15))
+rm(statsStDev, statsStDevOr, statsByAct)
+
+#for(i=1:rows(names(head(statsStDev)))){paste}
+table(as.numeric(samTrain$activity))
+
+model <- lm(as.numeric(activity) ~ 
+             fBodyAccJerk.entropy.X +
+#             fBodyAccJerk.entropy.Y +
+#             tBodyAccJerkMag.entropy + 
+#             fBodyAcc.entropy.X + 
+             fBodyBodyAccJerkMag.entropy + 
+             fBodyAccMag.entropy + 
+             tGravityAcc.energy.X + 
+              tGravityAcc.energy.Y + 
+              tGravityAcc.energy.Z + 
+#             fBodyAcc.entropy.Y +
+#             tBodyGyroJerkMag.entropy + 
+#             fBodyAccJerk.entropy.Z + 
+             tBodyAccJerk.entropy.X + 
+#             tBodyAccJerk.entropy.Y + 
+             fBodyBodyGyroJerkMag.entropy + 
+#             tBodyAccMag.entropy  
+#             tGravityAccMag.entropy
+             tBodyAcc.max.X +
+              tBodyAccJerk.max.X +
+              fBodyAcc.bandsEnergy.X.1.8 +
+              fBodyAccMag.mean +
+#              fBodyAccMag.sma
+              tGravityAcc.energy.X #+ 
+#              fBodyAcc.entropy.X + 
+#              tBodyAccJerkMag.entropy           
+      , data = samTrain)
+
+summary(model)
+
+#summary(step(lm(as.numeric(samTrain$activity) ~ .
+#             , data = samTrain[, 1:561])))
+
+predicted <- round(predict(model, samTrain))
+predicted <- replace(predicted, predicted==0,1)
+predicted <- replace(predicted, predicted>6,6)
+actual <- as.numeric(samTrain$activity)
+
+RMSD <- sqrt(sum((actual-predicted)^2)/length(actual))
+rsq <- 1-sum((actual-predicted)^2)/sum((actual-mean(actual))^2)
+
+print(rsq)
+print(RMSD)
+print(RMSD/mean(actual))
+print(paste0("Prediction error: ", as.character(round(RMSD/(max(actual)-min(actual)),3)*100),"%"))
+#http://en.wikipedia.org/wiki/Root-mean-square_deviation
+
+#png("IntRatePrediction.png", width=480, height=400, units= "px")
+plot(jitter(actual), jitter(predicted), 
+     main = "Activity: actual vs. predicted (train)", cex.main = 1, 
+     yaxt = "n", xaxt = "n", 
+     cex.axis=0.75,
+     bty= "n", ylab = "predicted",
+     xlab = "actual", 
+     col=rgb(0,100,0,30,maxColorValue=255), pch=16)
+axis(1, at=actual
+     , lab=samTrain$activity
+     , las = TRUE, cex.axis=0.75)
+axis(2, at=actual
+     , lab=samTrain$activity
+     , las = FALSE, cex.axis=0.75)
+abline(0,1, col="red")
+#dev.off()
+
+#using the test data
+predicted <- round(predict(model, samTest))
+predicted <- replace(predicted, predicted==0,1)
+predicted <- replace(predicted, predicted>6,6)
+actual <- as.numeric(samTest$activity)
+RMSD <- sqrt(sum((actual-predicted)^2)/length(actual))
+
+rsq <- 1-sum((actual-predicted)^2)/sum((actual-mean(actual))^2)
+print(rsq)
+print(RMSD)
+print(RMSD/mean(actual))
+print(paste0("Prediction error: ", as.character(round(RMSD/(max(actual)-min(actual)),3)*100),"%"))
+#http://en.wikipedia.org/wiki/Root-mean-square_deviation
+
+#png("IntRatePrediction.png", width=480, height=400, units= "px")
+plot(jitter(actual), jitter(predicted), 
+     main = "Activity: actual vs. predicted (test)", cex.main = 1, 
+     cex.axis=0.75, yaxt = "n", xaxt = "n",
+     bty= "n", ylab = "predicted",
+     xlab = "actual", 
+     col=rgb(0,100,0,30,maxColorValue=255), pch=16)
+axis(1, at=actual
+     , lab=samTest$activity
+     , las = TRUE, cex.axis=0.75)
+axis(2, at=actual
+     , lab=samTest$activity
+     , las = FALSE, cex.axis=0.75)
+abline(0,1, col="red")
+
+rm(actual, model, predicted, rsq, RMSD)
