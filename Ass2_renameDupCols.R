@@ -55,16 +55,16 @@ fixDupCols <-  function(df, legal=TRUE, verbose=TRUE){
   name.mapping
 }
 
-# get the name fix mapping
-fixed.name.mapping <- fixDupCols(samsungData)
-
-# check for duplicates, should not find any and return character(0)
-names(fixed.name.mapping)[duplicated(names(fixed.name.mapping))]
-
-# update the names
-names(samsungData) <- names(fixed.name.mapping)
-
-# optional: write the name translation to file, could be opened with Excel, for example
-#write.table(fixed.name.mapping, file = "samsungData.colnames.tab",
-#            append = FALSE, quote = FALSE, sep = "\t",
-#            eol = "\n", na = "", row.names = TRUE, col.names = FALSE)
+# # get the name fix mapping
+# fixed.name.mapping <- fixDupCols(samsungData, verbose = FALSE)
+# 
+# # check for duplicates, should not find any and return character(0)
+# names(fixed.name.mapping)[duplicated(names(fixed.name.mapping))]
+# 
+# # update the names
+# names(samsungData) <- names(fixed.name.mapping)
+# 
+# # optional: write the name translation to file, could be opened with Excel, for example
+# #write.table(fixed.name.mapping, file = "samsungData.colnames.tab",
+# #            append = FALSE, quote = FALSE, sep = "\t",
+# #            eol = "\n", na = "", row.names = TRUE, col.names = FALSE)
