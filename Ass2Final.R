@@ -18,7 +18,7 @@ dataFile <- "./downloads/samsungData.rda"
 load(dataFile)
 rm(dataFile)
 
-source("Ass2_renameDupCols.R")
+source("Ass2_renameDupCols.R", verbose = FALSE)
 names(samsungData) <- names(fixDupCols(samsungData))
 samsungData$activity <- as.factor(samsungData$activity)
 
@@ -50,25 +50,28 @@ rm(trainindex, index)
 
 table(samTrain$activity, exclude= NULL )
 
-statsByAct <- t(apply(scale(samTrain[ , 1:561], center = TRUE),
+statsByAct <- t(apply(scale(samTrain[ , 1:561], scale = FALSE, center=FALSE),
                       2 , 
                       function(col) tapply(col, 
                                            INDEX =samTrain$activity, 
                                            FUN=mean)))
 
+statsByAct <- statsByAct[! duplicated(statsByAct),]
 statsStDev <- apply(statsByAct, 1, sd)
 statsStDevOr <- order(statsStDev, decreasing=TRUE)
 statsStDev <- statsStDev[statsStDevOr]
 
 rm(statsStDevOr, statsByAct)
 
+startingVariablesSet <- 5
+
 lm.formula <- as.formula(paste0("as.numeric(activity) ~ ", 
-        paste(names(head(statsStDev, 100)), collapse="+")))
+        paste(names(head(statsStDev, startingVariablesSet)), collapse="+")))
 
 modelTest <- lm(lm.formula, data = samTrain)
 rm(lm.formula, statsStDev)
 
-modelStep <- step(modelTest)
+modelStep <- step(modelTest, trace = 0)
 summary(modelStep)
 rm(modelTest)
 
@@ -87,7 +90,7 @@ IdOk <- sum(actual==predicted)/length(actual)
 print(paste0("Identified: ", as.character(round(IdOk,3)*100), "%"))
 #http://en.wikipedia.org/wiki/Root-mean-square_deviation
 
-#png("IntRatePrediction.png", width=480, height=400, units= "px")
+png("TrainPrediction.png", width=640, height=640, units= "px")
 plot(jitter(actual), jitter(predicted), 
      main = "Activity: actual vs. predicted (train)", cex.main = 1, 
      yaxt = "n", xaxt = "n", 
@@ -102,7 +105,7 @@ axis(2, at=actual
      , lab=samTrain$activity
      , las = FALSE, cex.axis=0.75)
 abline(0,1, col="red")
-#dev.off()
+dev.off()
 
 #using the test data
 predicted <- round(predict(modelStep, samTest))
@@ -120,7 +123,7 @@ IdOk <- sum(actual==predicted)/length(actual)
 print(paste0("Identified: ", as.character(round(IdOk,3)*100), "%"))
 #http://en.wikipedia.org/wiki/Root-mean-square_deviation
 
-#png("IntRatePrediction.png", width=480, height=400, units= "px")
+png("TestPrediction.png", width=640, height=640, units= "px")
 plot(jitter(actual), jitter(predicted), 
      main = "Activity: actual vs. predicted (test)", cex.main = 1, 
      cex.axis=0.75, yaxt = "n", xaxt = "n",
@@ -134,5 +137,6 @@ axis(2, at=actual
      , lab=samTest$activity
      , las = FALSE, cex.axis=0.75)
 abline(0,1, col="red")
+dev.off()
 
-rm(actual, IdOk, predicted, rsq, RMSD, modelStep)
+rm(actual, IdOk, predicted, rsq, RMSD)
