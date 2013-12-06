@@ -52,7 +52,7 @@ modelStep <- modelTest
 summary(modelStep)
 rm(modelTest)
 plot(modelStep)
-text(modelStep, cex=0.5)
+text(modelStep, cex=0.7)
 
 png("pruningTree.png")
 par(mfrow=c(1,2))
@@ -128,7 +128,7 @@ print(paste0("Identified: ", as.character(round(IdOk,3)*100), "%"))
 
 png("TestFinalTree.png", width=640, height=640, units= "px")
 plot(jitter(actualNo), jitter(predictedNo), 
-     main = "Activity: actual vs. predicted (test)", cex.main = 1, 
+     main = "Activity: test set - final Tree (8 leaves, 7 variables)", cex.main = 1, 
      cex.axis=0.75, yaxt = "n", xaxt = "n",
      bty= "n", ylab = "predicted",
      xlab = "actual", 
