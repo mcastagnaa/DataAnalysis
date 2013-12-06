@@ -1,5 +1,5 @@
 statsByAct <- t(apply(samTrain[ , 1:561], 2,
-                      function(col) tapply(col,
+                      function(col) tapply(col, 
                                            INDEX =samTrain$activity, 
                                            FUN=mean)))
 
@@ -8,36 +8,46 @@ statsStDev <- apply(statsByAct, 1, sd)
 statsStDevOr <- order(statsStDev, decreasing=TRUE)
 statsStDev <- statsStDev[statsStDevOr]
 
+VariablesNoStep1 <- 5
+VariablesNoStep2 <- 10
+VariablesNoStep3 <- 30
+
+varNamesArr1 <- names(head(statsStDev, VariablesNoStep1))
+varNamesSet1 <- paste(names(head(statsStDev, VariablesNoStep1)), collapse="+")
+
+statsStDev <- apply(statsByAct[,1:3], 1, sd)
+statsStDevOr <- order(statsStDev, decreasing=TRUE)
+statsStDev <- statsStDev[statsStDevOr]
+varNamesArr2 <- names(head(statsStDev, VariablesNoStep2))
+varNamesSet2 <- paste(names(head(statsStDev, VariablesNoStep2)), collapse="+")
+
+statsStDev <- apply(statsByAct[,4:6], 1, sd)
+statsStDevOr <- order(statsStDev, decreasing=TRUE)
+statsStDev <- statsStDev[statsStDevOr]
+varNamesArr3 <- names(head(statsStDev, VariablesNoStep3))
+varNamesSet3 <- paste(names(head(statsStDev, VariablesNoStep3)), collapse="+")
+
+varNamesArr <- c(varNamesArr1,varNamesArr2,varNamesArr3 )
+print(paste("Duplicate variables:", sum(duplicated(varNamesArr))))
+
+varNames <- paste(varNamesSet1, varNamesSet2, varNamesSet3, sep = "+")
+
+
+lm.formula <- as.formula(paste0("as.numeric(activity) ~ ",varNames)) 
 rm(statsStDevOr, statsByAct)
+rm(list= ls(pattern="varName."))
 
-startingVariablesSet <- 2
 
-#For Random
-set.seed(1)
-index <- 1:561
-trainindex <- sample(index, startingVariablesSet)
-lm.formula <- as.formula(paste0("as.numeric(activity) ~ ", 
-                                paste(names(samsungData[, trainindex]), 
-                                      collapse="+")))
-rm(trainindex, index)
-
-# For StDev based
-# lm.formula <- as.formula(paste0("as.numeric(samTrain$activity) ~ ", 
-#         paste(names(head(statsStDev, startingVariablesSet)), collapse="+")))
-# 
-# 
 modelTest <- lm(lm.formula, data = samTrain)
 rm(lm.formula, statsStDev)
 
-#modelStep <- step(modelTest, trace = 0)
-modelStep <- modelTest
-
+modelStep <- step(modelTest, trace = 0)
 summary(modelStep)
 rm(modelTest)
 
 predicted <- round(predict(modelStep, samTrain))
-predicted <- replace(predicted, predicted < 1, 1)
-predicted <- replace(predicted, predicted > 6, 6)
+predicted <- replace(predicted, predicted==0,1)
+predicted <- replace(predicted, predicted>6,6)
 actual <- as.numeric(samTrain$activity)
 
 RMSD <- sqrt(sum((actual-predicted)^2)/length(actual))
@@ -50,15 +60,14 @@ IdOk <- sum(actual==predicted)/length(actual)
 print(paste0("Identified: ", as.character(round(IdOk,3)*100), "%"))
 #http://en.wikipedia.org/wiki/Root-mean-square_deviation
 
-png("TrainPrediction_2var_rnd.png", width=640, height=640, units= "px")
+#png("TrainPrediction_tripleSel_StDev.png", width=640, height=640, units= "px")
 plot(jitter(actual), jitter(predicted), 
      main = "Activity: actual vs. predicted (train)", cex.main = 1, 
      yaxt = "n", xaxt = "n", 
      cex.axis=0.75,
      bty= "n", ylab = "predicted",
      xlab = "actual", 
-     col=rgb(0, 100, 0, 30, maxColorValue=255), pch=16,
-     xlim=c(0,6), ylim=c(0,6))
+     col=rgb(0, 100, 0, 30, maxColorValue=255), pch=16)
 axis(1, at=actual
      , lab=samTrain$activity
      , las = TRUE, cex.axis=0.75)
@@ -66,7 +75,7 @@ axis(2, at=actual
      , lab=samTrain$activity
      , las = FALSE, cex.axis=0.75)
 abline(0,1, col="red")
-dev.off()
+#dev.off()
 
 #using the test data
 predicted <- round(predict(modelStep, samTest))
@@ -84,7 +93,7 @@ IdOk <- sum(actual==predicted)/length(actual)
 print(paste0("Identified: ", as.character(round(IdOk,3)*100), "%"))
 #http://en.wikipedia.org/wiki/Root-mean-square_deviation
 
-png("TestPrediction.png", width=640, height=640, units= "px")
+#png("TestPrediction.png", width=640, height=640, units= "px")
 plot(jitter(actual), jitter(predicted), 
      main = "Activity: actual vs. predicted (test)", cex.main = 1, 
      cex.axis=0.75, yaxt = "n", xaxt = "n",
@@ -98,6 +107,6 @@ axis(2, at=actual
      , lab=samTest$activity
      , las = FALSE, cex.axis=0.75)
 abline(0,1, col="red")
-dev.off()
+#dev.off()
 
-rm(actual, IdOk, predicted, rsq, RMSD, modelStep)
+rm(actual, IdOk, predicted, rsq, RMSD)

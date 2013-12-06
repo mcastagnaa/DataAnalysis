@@ -22,6 +22,7 @@ rm(dataFile)
 source("Ass2_renameDupCols.R")
 names(samsungData) <- names(fixDupCols(samsungData, verbose = FALSE))
 samsungData$activity <- as.factor(samsungData$activity)
+samsungData[, 1:561] <- scale(samsungData[, 1:561])
 
 #names(samsungData)
 #str(samsungData)
@@ -37,18 +38,16 @@ otherSubj <- unique(samsungData[! samsungData$subject %in%
 set.seed(1234)
 index <- 1:length(otherSubj)
 trainindex <- sample(index, ceiling(length(index)/2))
-otherTrain <- otherSubj[trainindex]
-otherTest <- otherSubj[-trainindex]
 
-subjTrain <- c(fixTrain, otherTrain)
-subjTest <- c(fixTest, otherTest)
+subjTrain <- c(fixTrain, otherSubj[trainindex])
+subjTest <- c(fixTest, otherSubj[-trainindex])
 
 samTrain <- na.omit(samsungData[samsungData$subject %in% subjTrain, ])
 samTest <- na.omit(samsungData[samsungData$subject %in% subjTest, ])
 
-rm(list= ls(patter="other."))
-rm(list= ls(patter="fix."))
-rm(list= ls(patter="subj."))
+rm(list= ls(pattern="other."))
+rm(list= ls(pattern="fix."))
+rm(list= ls(pattern="subj."))
 rm(trainindex, index)
 
 table(samTrain$activity, exclude= NULL )
